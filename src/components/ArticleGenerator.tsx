@@ -1,17 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, BookOpen, Sparkles, FileText } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, BookOpen, Sparkles, FileText, Key, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface FormData {
   topic: string;
   tone: string;
   depth: string;
   format: string;
+  apiKey: string;
 }
 
 interface ArticleGeneratorProps {
@@ -24,9 +27,19 @@ export const ArticleGenerator = ({ onGenerate, isGenerating }: ArticleGeneratorP
     topic: "",
     tone: "",
     depth: "",
-    format: ""
+    format: "",
+    apiKey: ""
   });
+  const [showApiKey, setShowApiKey] = useState(false);
   const { toast } = useToast();
+
+  // Load API key from localStorage on component mount
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('gemini_api_key');
+    if (savedApiKey) {
+      setFormData(prev => ({ ...prev, apiKey: savedApiKey }));
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,15 +62,63 @@ export const ArticleGenerator = ({ onGenerate, isGenerating }: ArticleGeneratorP
       return;
     }
 
-    // For demo purposes, generate a mock article
-    // In a real implementation, this would call an API
-    const mockArticle = generateMockArticle(formData);
-    onGenerate(mockArticle);
+    if (!formData.apiKey.trim()) {
+      toast({
+        title: "API Key Required",
+        description: "Please enter your Google Gemini API key to generate articles.",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    toast({
-      title: "Article Generated!",
-      description: "Your educational article has been created successfully.",
-    });
+    try {
+      // Save API key to localStorage for future use
+      localStorage.setItem('gemini_api_key', formData.apiKey);
+      
+      // Generate article using Gemini API
+      const article = await generateArticleWithGemini(formData);
+      onGenerate(article);
+
+      toast({
+        title: "Article Generated!",
+        description: "Your educational article has been created successfully.",
+      });
+    } catch (error) {
+      console.error('Error generating article:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate article. Please check your API key and try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const generateArticleWithGemini = async (data: FormData): Promise<string> => {
+    const genAI = new GoogleGenerativeAI(data.apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    const prompt = `You are an expert educator and content creator. Generate a comprehensive, well-structured educational article based on the following requirements:
+
+Topic: ${data.topic}
+Tone: ${data.tone}
+Depth Level: ${data.depth}
+Format Style: ${data.format}
+
+Please create an article that includes:
+1. An engaging introduction that sets the context
+2. Clear section headings and subheadings
+3. Detailed explanations with examples where appropriate
+4. Practical applications and real-world connections
+5. Key takeaways or summary points
+6. A section for further reading suggestions
+
+The article should be written in Markdown format, be educational and informative, and match the specified tone and depth level. Make it comprehensive but accessible to the target audience.
+
+Structure the content logically and ensure it flows well from introduction to conclusion. Include relevant examples, case studies, or practical applications where they would enhance understanding.`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
   };
 
   const generateMockArticle = (data: FormData): string => {
@@ -149,6 +210,49 @@ ${data.topic} offers rich opportunities for learning and application. By followi
       </CardHeader>
       <CardContent className="space-y-6">
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="apiKey" className="text-sm font-medium flex items-center gap-2">
+              <Key className="h-4 w-4" />
+              Google Gemini API Key
+            </Label>
+            <div className="relative">
+              <Input
+                id="apiKey"
+                type={showApiKey ? "text" : "password"}
+                placeholder="Enter your Google Gemini API key..."
+                value={formData.apiKey}
+                onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                className="pr-10 transition-smooth focus:shadow-glow"
+                disabled={isGenerating}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowApiKey(!showApiKey)}
+                disabled={isGenerating}
+              >
+                {showApiKey ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Get your free API key from{" "}
+              <a 
+                href="https://makersuite.google.com/app/apikey" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Google AI Studio
+              </a>
+            </p>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="topic" className="text-sm font-medium flex items-center gap-2">
               <FileText className="h-4 w-4" />
