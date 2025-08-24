@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Download, Share2 } from "lucide-react";
+import { Copy, Download, Share2, FileText, Check, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface ArticleDisplayProps {
   article: string;
@@ -10,10 +11,13 @@ interface ArticleDisplayProps {
 
 export const ArticleDisplay = ({ article, onReset }: ArticleDisplayProps) => {
   const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(article);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
       toast({
         title: "Copied to Clipboard",
         description: "The article has been copied to your clipboard.",
@@ -81,58 +85,76 @@ export const ArticleDisplay = ({ article, onReset }: ArticleDisplayProps) => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
-      <Card className="shadow-card">
-        <CardHeader className="border-b bg-muted/30">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl font-display">Generated Article</CardTitle>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopy}
-                className="transition-smooth hover:shadow-glow"
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Copy
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownload}
-                className="transition-smooth hover:shadow-glow"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleShare}
-                className="transition-smooth hover:shadow-glow"
-              >
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
+    <div className="min-h-screen bg-background py-8 px-4">
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-6 pb-8 border-b border-glow/30">
+          <div className="flex items-center justify-center gap-4">
+            <div className="p-3 rounded-2xl bg-primary/10 shadow-glow border border-glow">
+              <FileText className="h-10 w-10 text-primary-glow" />
             </div>
+            <h1 className="text-4xl md:text-5xl font-display font-bold text-glow">
+              Generated Article
+            </h1>
           </div>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <div 
-            className="prose-custom max-w-none animate-fade-in"
-            dangerouslySetInnerHTML={{ __html: formatArticleForDisplay(article) }}
-          />
-        </CardContent>
-      </Card>
+          
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button
+              onClick={handleCopy}
+              variant="outline"
+              className="bg-card/50 border-glow hover:shadow-glow hover:scale-105 transition-smooth"
+            >
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4 mr-2 text-green-500" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy Content
+                </>
+              )}
+            </Button>
+            
+            <Button
+              onClick={handleDownload}
+              variant="outline"
+              className="bg-card/50 border-accent-glow hover:shadow-accent-glow hover:scale-105 transition-smooth"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download as Markdown
+            </Button>
+            
+            <Button
+              onClick={handleShare}
+              variant="outline"
+              className="bg-card/50 border-glow hover:shadow-glow hover:scale-105 transition-smooth"
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              Share
+            </Button>
+            
+            <Button
+              onClick={onReset}
+              variant="hero"
+              className="shadow-hero hover:shadow-intense"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Generate New Article
+            </Button>
+          </div>
+        </div>
 
-      <div className="flex justify-center">
-        <Button
-          onClick={onReset}
-          variant="outline"
-          className="px-8 transition-smooth hover:shadow-glow"
-        >
-          Generate Another Article
-        </Button>
+        {/* Article Content */}
+        <Card className="shadow-hero border border-glow/50 bg-gradient-to-br from-card via-card to-muted/10">
+          <CardContent className="p-8 md:p-12">
+            <div 
+              className="prose-custom max-w-none animate-fade-in"
+              dangerouslySetInnerHTML={{ __html: formatArticleForDisplay(article) }}
+            />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

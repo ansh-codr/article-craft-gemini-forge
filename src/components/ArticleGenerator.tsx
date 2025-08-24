@@ -194,25 +194,25 @@ ${data.topic} offers rich opportunities for learning and application. By followi
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-card transition-smooth hover:shadow-elegant">
-      <CardHeader className="space-y-1">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <BookOpen className="h-6 w-6 text-primary" />
+    <Card className="w-full max-w-2xl mx-auto shadow-hero border border-glow hover-intense bg-gradient-to-br from-card via-card to-muted/20">
+      <CardHeader className="space-y-4 border-b border-glow/30">
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-primary/10 shadow-glow border border-glow">
+            <BookOpen className="h-8 w-8 text-primary-glow" />
           </div>
           <div>
-            <CardTitle className="text-2xl font-display">Article Generator</CardTitle>
-            <CardDescription>
-              Create comprehensive educational content tailored to your needs
+            <CardTitle className="text-3xl font-display font-bold text-glow">Article Generator</CardTitle>
+            <CardDescription className="text-base text-muted-foreground">
+              Create comprehensive educational content with AI-powered precision
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="apiKey" className="text-sm font-medium flex items-center gap-2">
-              <Key className="h-4 w-4" />
+            <div className="space-y-3">
+            <Label htmlFor="apiKey" className="text-sm font-semibold flex items-center gap-2 text-foreground">
+              <Key className="h-5 w-5 text-primary-glow" />
               Google Gemini API Key
             </Label>
             <div className="relative">
@@ -222,21 +222,21 @@ ${data.topic} offers rich opportunities for learning and application. By followi
                 placeholder="Enter your Google Gemini API key..."
                 value={formData.apiKey}
                 onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                className="pr-10 transition-smooth focus:shadow-glow"
+                className="pr-12 py-3 border-glow focus:shadow-glow focus:border-primary-glow transition-smooth bg-background/50"
                 disabled={isGenerating}
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                className="absolute right-0 top-0 h-full px-4 py-2 hover:bg-primary/10 hover:shadow-glow transition-smooth"
                 onClick={() => setShowApiKey(!showApiKey)}
                 disabled={isGenerating}
               >
                 {showApiKey ? (
-                  <EyeOff className="h-4 w-4" />
+                  <EyeOff className="h-4 w-4 text-muted-foreground hover:text-primary-glow transition-smooth" />
                 ) : (
-                  <Eye className="h-4 w-4" />
+                  <Eye className="h-4 w-4 text-muted-foreground hover:text-primary-glow transition-smooth" />
                 )}
               </Button>
             </div>
@@ -253,9 +253,9 @@ ${data.topic} offers rich opportunities for learning and application. By followi
             </p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="topic" className="text-sm font-medium flex items-center gap-2">
-              <FileText className="h-4 w-4" />
+          <div className="space-y-3">
+            <Label htmlFor="topic" className="text-sm font-semibold flex items-center gap-2 text-foreground">
+              <FileText className="h-5 w-5 text-accent" />
               Topic or Keywords
             </Label>
             <Textarea
@@ -263,7 +263,7 @@ ${data.topic} offers rich opportunities for learning and application. By followi
               placeholder="Enter your syllabus outline, topic keywords, or specific subject you'd like to learn about..."
               value={formData.topic}
               onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-              className="min-h-[100px] transition-smooth focus:shadow-glow"
+              className="min-h-[120px] border-accent-glow focus:shadow-accent-glow focus:border-accent transition-smooth bg-background/50 resize-none"
               disabled={isGenerating}
             />
           </div>

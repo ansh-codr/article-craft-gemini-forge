@@ -72,7 +72,10 @@ export default {
 			boxShadow: {
 				'elegant': 'var(--shadow-elegant)',
 				'glow': 'var(--shadow-glow)',
-				'card': 'var(--shadow-card)'
+				'card': 'var(--shadow-card)',
+				'intense': 'var(--shadow-intense)',
+				'accent-glow': 'var(--shadow-accent-glow)',
+				'hero': 'var(--shadow-hero)'
 			},
 			transitionTimingFunction: {
 				'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
