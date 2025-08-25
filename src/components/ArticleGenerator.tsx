@@ -31,6 +31,7 @@ export const ArticleGenerator = ({ onGenerate, isGenerating }: ArticleGeneratorP
     apiKey: ""
   });
   const [showApiKey, setShowApiKey] = useState(false);
+  const [showApiKeySection, setShowApiKeySection] = useState(false);
   const { toast } = useToast();
 
   // Load API key from localStorage on component mount
@@ -38,6 +39,9 @@ export const ArticleGenerator = ({ onGenerate, isGenerating }: ArticleGeneratorP
     const savedApiKey = localStorage.getItem('gemini_api_key');
     if (savedApiKey) {
       setFormData(prev => ({ ...prev, apiKey: savedApiKey }));
+      setShowApiKeySection(false); // Hide if key exists
+    } else {
+      setShowApiKeySection(true); // Show if no key exists
     }
   }, []);
 
@@ -118,7 +122,31 @@ Structure the content logically and ensure it flows well from introduction to co
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return response.text();
+    const fullText = response.text();
+    
+    // Simulate streaming effect by gradually showing content
+    await simulateStreaming(fullText);
+    return fullText;
+  };
+
+  const simulateStreaming = async (text: string): Promise<void> => {
+    return new Promise((resolve) => {
+      let currentText = '';
+      let index = 0;
+      const words = text.split(' ');
+      
+      const interval = setInterval(() => {
+        if (index < words.length) {
+          currentText += (index > 0 ? ' ' : '') + words[index];
+          onGenerate(currentText + '...');
+          index++;
+        } else {
+          clearInterval(interval);
+          onGenerate(text);
+          resolve();
+        }
+      }, 50); // Stream words every 50ms
+    });
   };
 
   const generateMockArticle = (data: FormData): string => {
@@ -210,47 +238,60 @@ ${data.topic} offers rich opportunities for learning and application. By followi
       </CardHeader>
       <CardContent className="space-y-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-3">
-            <Label htmlFor="apiKey" className="text-sm font-semibold flex items-center gap-2 text-foreground">
-              <Key className="h-5 w-5 text-primary-glow" />
-              Google Gemini API Key
-            </Label>
-            <div className="relative">
-              <Input
-                id="apiKey"
-                type={showApiKey ? "text" : "password"}
-                placeholder="Enter your Google Gemini API key..."
-                value={formData.apiKey}
-                onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                className="pr-12 py-3 border-glow focus:shadow-glow focus:border-primary-glow transition-smooth bg-background/50"
-                disabled={isGenerating}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-4 py-2 hover:bg-primary/10 hover:shadow-glow transition-smooth"
-                onClick={() => setShowApiKey(!showApiKey)}
-                disabled={isGenerating}
-              >
-                {showApiKey ? (
-                  <EyeOff className="h-4 w-4 text-muted-foreground hover:text-primary-glow transition-smooth" />
-                ) : (
-                  <Eye className="h-4 w-4 text-muted-foreground hover:text-primary-glow transition-smooth" />
-                )}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Get your free API key from{" "}
-              <a 
-                href="https://makersuite.google.com/app/apikey" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                Google AI Studio
-              </a>
-            </p>
+          {/* API Key Section - Collapsible and less prominent */}
+          <div className="space-y-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-xs text-muted-foreground hover:text-foreground p-0 h-auto font-normal"
+              onClick={() => setShowApiKeySection(!showApiKeySection)}
+            >
+              <Key className="h-3 w-3 mr-2" />
+              {formData.apiKey ? 'API Key Configured' : 'Configure API Key'}
+              {showApiKeySection ? ' ▼' : ' ▶'}
+            </Button>
+            
+            {showApiKeySection && (
+              <div className="space-y-3 p-4 bg-muted/20 rounded-lg border border-border/50">
+                <div className="relative">
+                  <Input
+                    id="apiKey"
+                    type={showApiKey ? "text" : "password"}
+                    placeholder="Enter your Google Gemini API key..."
+                    value={formData.apiKey}
+                    onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                    className="pr-12 text-sm border-glow focus:shadow-glow focus:border-primary-glow transition-smooth bg-background/50"
+                    disabled={isGenerating}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-primary/10 transition-smooth"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                    disabled={isGenerating}
+                  >
+                    {showApiKey ? (
+                      <EyeOff className="h-3 w-3 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-3 w-3 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Get your free API key from{" "}
+                  <a 
+                    href="https://makersuite.google.com/app/apikey" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    Google AI Studio
+                  </a>
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">
